@@ -1,0 +1,1 @@
+screen.vba: call delete('/zfs/cseresearch02/a0109983/.vim/autoload/screen.vim')|call delete('/zfs/cseresearch02/a0109983/.vim/doc/screen.txt')|call delete('/zfs/cseresearch02/a0109983/.vim/plugin/screen.vim')

@@ -1,0 +1,135 @@
+\documentclass[a4paper,11pt]{article}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern}
+%\title{}
+%\author{}
+%\begin{document}
+%\maketitle
+%\tableofcontents
+%\begin{abstract}
+%\end{abstract}
+%\section{}
+\usepackage{CJK}
+\usepackage{multirow}
+\usepackage{amssymb}
+\usepackage{amsmath}
+\usepackage{graphicx,color,xcolor}
+\usepackage{caption}
+\usepackage{latexsym,bm}
+
+\begin{document}
+\begin{CJK}{UTF8}{gbsn}
+\author{A0109983 Liu Zhaoqiang}                                    
+{\large \title{Project 2} }                          
+\maketitle    
+
+\noindent Problem:	Use either Matlab or freefem++ to solve
+$$\partial _{t}u + b(x,t)^{T}\cdotp \nabla u(x,t)= \Delta u+f $$
+on $[0, 1]^{2}$ with u = g on the whole boundary. Take $b(x, t) = (1, -2)^{T}$  . For the project, suppose the exact solution is 
+$$u(t, x, y) = cos(t) cos(6x) sin(6y)e^{ x-y}$$
+and determine $f$ and $g$ accordingly. Numerically integrate the equation from t = 0 to t = 1.
+Use $P_{1}$ element for the spatial discretization and BDF2+ extrapolation for the temporal
+discretization. To initialize, $u^{ 0} _{h}$ is taken to be the interpolation of $u ^{0}$ and
+$u ^{1}_{ h}$ is computed with backward Euler for the diffusion term and explicit extrapolation for
+the convection term.\\
+\noindent Solution: We have the following schemes:
+\begin{equation}
+  (\dfrac{u^{1}_{h}-u^{0}_{h}}{\Delta t},v_{h})+(b(t^{1})\cdotp \nabla u^{0}_{h},v_{h}) + (\nabla u^{1}_{h},\nabla v_{h}) = (f(t^{1}),v_{h})
+\end{equation} 
+and 
+\begin{equation}
+  (\dfrac{3u^{n}_{h}-4u^{n-1}_{h}+u^{n-2}_{h}}{2\Delta t},v_{h})+(b(t^{n})\cdotp \nabla (2u^{n-1}_{h}-u^{n-2}_{h}),v_{h}) + (\nabla u^{1}_{h},\nabla v_{h}) = (f(t^{n}),v_{h})
+\end{equation} 
+Suppose n is the number of small intervals in x-axis and y-axis, and let h be the spatial step size, then $h\cdotp n=1$. $\Delta t$ is the time step size. Denote $N=n+1, M=N^{2}$. Let the basis functions be $\varphi _{i}$, i=1,2,...,M, then to use the first scheme to solve $u^{1}_{h}$, we assume 
+$$u^{1}_{h}=\sum _{j=1}^{M} \xi _{j}^{1} \varphi _{j}, u^{0}_{h}=\sum _{j=1}^{M} \xi _{j}^{0} \varphi _{j}$$
+where  $\xi _{j}^{0}$ is already known, and we need to solve $\xi _{j}^{1}$ via first schme.\\
+Let $$A=(a_{ij}), a_{ij} = (\nabla \varphi _{i}, \nabla \varphi _{j})$$
+$$B=(b_{ij}), b_{ij} = (\varphi _{i}, \varphi _{j})$$
+$$C=(c_{ij}), c_{ij} = (\varphi _{i}, \partial_{x} \varphi _{j})$$
+$$D=(d_{ij}), d_{ij} = (\varphi _{i}, \partial_{y} \varphi _{j})$$
+\newpage
+
+\noindent Then the first scheme leads to
+\begin{equation}
+  B\dfrac{\xi ^{1}-\xi ^ {0}}{\Delta t} + b(t^{1})_{1}C\xi ^ {0} + b(t^{1})_{2}D\xi ^ {0}+ A\xi ^{1}=F(t^{1})
+\end{equation}
+where $\xi ^{1}=(\xi ^{1}_{1},...,\xi ^{1}_{M})^{T}, \xi ^{0}=(\xi ^{0}_{1},...,\xi ^{0}_{M})^{T}$, 
+$b(t^{1})=(b(t^{1})_{1},b(t^{1})_{2})^{T}$, $F(t^{1})=((f(t^{1}),\varphi _{1}),...,(f(t^{1}),\varphi _{M})^{T}$.
+Thus, we have:
+$$(B+\Delta t A)\xi ^{1} = \Delta t F(t^{1}) + B \xi ^{0} - \Delta t b(t^{1})_{1}C\xi ^ {0} - \Delta t b(t^{1})_{2}D\xi ^ {0}$$
+If we got A,B,C,D already, it is easy to solve $\xi ^{1}$ from the above equation.\\
+When use the rectangle element as in previous project, we have:\\
+(1) if the k-th node is a inner point, 
+\begin{flalign*} 
+& A(k,k)=\dfrac{8}{3}, A(k,k+1)=A(k,k-1)=A(k,k+N)=A(k,k-N)=-\dfrac{1}{3},\\
+& A(k,k-N-1)=A(k,k-N+1)=A(k,k+N-1)=A(k,k+N+1)=-\dfrac{1}{3} \\ 
+& B(k,k)=\dfrac{4h^{2}}{9}, B(k,k+1)=B(k,k-1)=B(k,k+N)=B(k,k-N)=\dfrac{h^{2}}{9},\\
+& B(k,k-N-1)=B(k,k-N+1)=B(k,k+N-1)=B(k,k+N+1)=\dfrac{h^{2}}{36} \\ 
+& C(k,k)=C(k,k+N)=C(k,k-N)=0, C(k,k+1)=\dfrac{h}{3},C(k,k-1)=-\dfrac{h}{3},\\
+& C(k,k-N-1)=C(k,k+N-1)=-\dfrac{h}{12},C(k,k-N+1)=C(k,k+N+1)=\dfrac{h}{12} \\
+& D(k,k)=D(k,k+1)=D(k,k-1)=0, D(k,k+N)=\dfrac{h}{3},D(k,k-N)=-\dfrac{h}{3},\\
+& D(k,k-N-1)=C(k,k-N+1)=-\dfrac{h}{12},C(k,k+N-1)=C(k,k+N+1)=\dfrac{h}{12} \\
+\end{flalign*}
+(2) if the k-th node is a boundary point, we just need to let $ B(k,k)=1, A(k,:)=0, C(k,:)=0, D(k,:)=0  $.\\
+\newpage
+
+\noindent When use the $P_{1}$ triangle element, we have:\\
+(1) if the k-th node is a inner point, 
+\begin{flalign*} 
+& A(k,k)=4,A(k,k+1)=-1,A(k,k-1)=-1,A(k,k+N)=-1,A(k,k-N)=-1;\\ 
+& B(k,k)=\dfrac{h^2}{2},B(k,k+1)=B(k,k-1)=B(k,k+N)=\dfrac{h^{2}}{12},\\
+& B(k,k-N)=B(k,k-N-1)=B(k,k+N+1)=\dfrac{h^{2}}{12}; \\
+& C(k,k)=0,C(k,k+1)=\dfrac{h}{3},C(k,k-1)=-\dfrac{h}{3},C(k,k+N)=-\dfrac{h}{6},\\
+& C(k,k-N)=\dfrac{h}{6},C(k,k-N-1)=-\dfrac{h}{6},C(k,k+N+1)=\dfrac{h}{6};\\
+& D(k,k)=0,D(k,k+1)=-\dfrac{h}{6},D(k,k-1)=\dfrac{h}{6},D(k,k+N)=\dfrac{h}{3}, \\
+& D(k,k-N)=-\dfrac{h}{3},D(k,k-N-1)=-\dfrac{h}{6},D(k,k+N+1)=\dfrac{h}{6};\\
+\end{flalign*}
+(2) if the k-th node is a boundary point, we just need to let $ B(k,k)=1, A(k,:)=0, C(k,:)=0, D(k,:)=0  $.\\
+
+\noindent To use the second scheme to solve $u^{n}_{h}, n \geq 2$, the procedure is similar.\\ 
+
+\noindent Numerical results \\
+Table1. Using rectangle element(compute to T=1)
+\begin{center}
+\begin{tabular}{|p{3.2cm}|p{3.5cm}|p{3.5cm}|}
+\hline
+\textbf{ n and $\Delta t$} & \textbf{$L^{\infty}$ error} & \textbf{$L_{2}$ error} \\ \hline
+n=10,$\Delta t$=0.01 & 0.0262 & 0.0085 \\ \hline
+n=20,$\Delta t$=0.005 & 0.0066 & 0.0021 \\ \hline
+n=40,$\Delta t$=0.0025 & 0.0017 & 5.2904e-04 \\ \hline
+n=80,$\Delta t$=0.00125 & 4.1900e-04  & 1.3222e-04 \\ \hline
+\end{tabular}
+\end{center}
+Loglog graphs are shown below.\\
+\begin{figure}
+ \caption{loglog graph for $L^{\infty}$ error}
+\includegraphics[width=4in,height=3in]{Project2_1.jpg}
+\end{figure}
+\begin{figure}
+ \caption{loglog graph for $L_{2}$ error}
+\includegraphics[width=4in,height=3in]{Project2_2.jpg}
+\end{figure}
+
+\noindent Using polyfit function in Matlab, we have:\\
+$$log(L^{\infty}\quad error) = 1.9856log(h) + 0.9322$$
+$$log(L_{2} \quad error) = 2.0008log(h) - 0.1649$$
+
+\noindent Table2. Using $P_{1}$ triangle element(compute to T=1)
+\begin{center}
+\begin{tabular}{|p{3.2cm}|p{3.5cm}|p{3.5cm}|}
+\hline
+\textbf{ n and $\Delta t$} & \textbf{$L^{\infty}$ error} & \textbf{$L_{2}$ error} \\ \hline
+n=10,$\Delta t$=0.01 & 0.0240 & 0.0104 \\ \hline
+n=20,$\Delta t$=0.005 & 0.0061 & 0.0026 \\ \hline
+n=40,$\Delta t$=0.0025 & 0.0015 & 6.4827e-04 \\ \hline
+n=80,$\Delta t$=0.00125 & 3.8234e-04  & 1.6202e-04 \\ \hline
+\end{tabular}
+\end{center}
+\noindent The loglog graphs are similar with that of using rectangle element. Here we omit the graphs.\\
+\noindent Using polyfit function in Matlab, we have:\\
+$$log(L^{\infty}\quad error) = 1.9940log(h) + 0.8644$$
+$$log(L_{2} \quad error) = 2.0017log(h) + 0.0434$$
+
+\end{CJK}
+\end{document}

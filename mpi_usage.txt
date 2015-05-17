@@ -1,0 +1,23 @@
+The workstations are located at Centre for Computational Science and Engineering. Blk S16, level 8, CCSE lab.
+
+Please see http://web.cse.nus.edu.sg/wiki/index.php?title=Main_Page for more information. (Osprey workstations)
+
+Here, in very short form how you can use a machine:
+
+1) Connect to one of those computers by e.g.
+ssh myuserid@hawk1.cse.nus.edu.sg
+
+or get access to the computer directly.
+
+2) Get your program to the computer (here hello.cc) either by scp or program remotely via e.g. vi
+
+3) Compile the program:
+mpic++ -o hello hello.cc
+
+4) Execute the program (here using 4 processes):
+mpirun -np 4 ./hello
+
+
+To execute the program interactively is only accepted for very short run-times (up to a few seconds). 
+In case you have a program that takes longer than that, you have to use the scheduling system (according to the policies). 
+Please see the website for more information and how to use it. However, the programs of our tasks should all run less than a few seconds.
